@@ -1,4 +1,4 @@
-from app.auth.utils import hash_password, verify_password, create_access_token
+from app.auth.utils import get_current_user, hash_password, verify_password, create_access_token
 from app.database import get_db
 from app.models import User
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -35,3 +35,8 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     token = create_access_token({"sub": str(user.id)})
     return {"access_token": token, "token_type": "bearer"}
+
+@router.get("/me")
+def get_me(current_user: User = Depends(get_current_user)):
+
+    return {"email": current_user.email, "created_at": current_user.created_at}
