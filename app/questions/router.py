@@ -14,8 +14,7 @@ class QuestionRequest(BaseModel):
 
 router = APIRouter(prefix="/questions", tags=["questions"])
 
-
-@router.post("/questions")
+@router.post("/generate")  # ← correct
 def generate(
     request: QuestionRequest,
     current_user: User = Depends(get_current_user),
@@ -36,4 +35,17 @@ def generate(
             }
             for q in questions
         ]
+    }
+@router.get("/list")
+def list_questions(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    from app.models import InterviewQuestion
+    questions = db.query(InterviewQuestion).filter(
+        InterviewQuestion.user_id == current_user.id
+    ).all()
+    return {
+        "count": len(questions),
+        "questions": [{"id": q.id, "type": q.question_type, "question": q.question, "difficulty": q.difficulty} for q in questions]
     }
