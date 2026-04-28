@@ -52,3 +52,27 @@ class InterviewQuestion(Base):
     ideal_answer = Column(Text)
     source = Column(String)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class InterviewAnswer(Base):
+    __tablename__ = "interview_answers"
+
+    id= Column(Integer, primary_key=True, index=True)
+    session_id = Column(Integer, ForeignKey("interview_sessions.id"), nullable=False)
+    question_id = Column(Integer, ForeignKey("interview_questions.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    answer = Column(Text, nullable=False)
+    feedback = Column(Text)
+    score = Column(Integer)  # 0-10
+    created_at = Column(DateTime(timezone=True), server_default=func.now())     
+    # add these columns:
+    # id, session_id (FK to interview_sessions), question_id (FK to interview_questions)
+    # user_id (FK to users), answer (Text), feedback (Text)
+    # score (Integer 0-10), created_at
+class InterviewSession(Base):
+    __tablename__ = "interview_sessions"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    jd_id = Column(Integer, ForeignKey("job_descriptions.id"), nullable=False)
+    status = Column(String, default="active")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    completed_at = Column(DateTime(timezone=True), nullable=True)
