@@ -33,7 +33,7 @@ async def interview_chat(websocket: WebSocket, session_id: int):
     db = next(get_db())
     try:
         await websocket.accept()
-        
+
         # Get session to know user_id
         session_obj = db.query(InterviewSession).filter(
             InterviewSession.id == session_id
@@ -43,19 +43,36 @@ async def interview_chat(websocket: WebSocket, session_id: int):
             await websocket.close()
             return
         session_user_id = session_obj.user_id
-        
+
         questions = get_session_questions(session_id, db)
         if not questions:
             await websocket.send_json({"error": "No questions found"})
             await websocket.close()
             return
-        
-        await websocket.send_text(f"Welcome! Your interview has {len(questions)} questions. Let's begin!")
-        
-        total_score = 0
-        answered = 0
-        
+
+        # Get already answered question IDs from DB
+        previous_answers = db.query(InterviewAnswer).filter(
+            InterviewAnswer.session_id == session_id
+        ).all()
+        answered_ids = {a.question_id for a in previous_answers}
+        total_score = sum(a.score for a in previous_answers if a.score is not None)
+        answered = len([a for a in previous_answers if a.score is not None])
+
+        # Send welcome or resume message
+        if answered_ids:
+            await websocket.send_text(json.dumps({
+                "type": "resume",
+                "message": f"Resuming interview — {len(answered_ids)} questions already done",
+                "remaining": len(questions) - len(answered_ids)
+            }))
+        else:
+            await websocket.send_text(f"Welcome! Your interview has {len(questions)} questions. Let's begin!")
+
         for i, question in enumerate(questions):
+            # Skip already answered questions
+            if question.id in answered_ids:
+                continue
+
             await websocket.send_text(json.dumps({
                 "type": "question",
                 "number": i + 1,
@@ -68,7 +85,7 @@ async def interview_chat(websocket: WebSocket, session_id: int):
                 user_message = await websocket.receive_text()
                 result = evaluate_answer(question.question, user_message)
                 await websocket.send_text(json.dumps(result))
-                
+
                 if result.get("next"):
                     if result.get("type") == "answer":
                         total_score += result.get("score", 0)
@@ -83,7 +100,7 @@ async def interview_chat(websocket: WebSocket, session_id: int):
                             db=db
                         )
                     break
-        
+
         avg_score = round(total_score / answered, 1) if answered > 0 else 0
         await websocket.send_text(json.dumps({
             "type": "complete",
