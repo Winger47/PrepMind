@@ -3,9 +3,4 @@
 __pycache__/
 *.pyc
 .DS_Store
-alembic/versions/.venv/
-.env
-__pycache__/
-*.pyc
-.DS_Store
-alembic/versions/
+chroma_db/
