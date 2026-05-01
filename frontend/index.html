@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PrepMind — AI Interview Prep</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          bg: "#0a0a0a",
+          card: "#1a1a1a",
+          border: "#2a2a2a",
+          muted: "#a3a3a3",
+          accent: "#3b82f6",
+        },
+        fontFamily: {
+          sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
+        },
+      },
+    },
+  };
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    color-scheme: dark;
+  }
+  html, body {
+    background: #0a0a0a;
+    color: #ffffff;
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  * { box-sizing: border-box; }
+
+  /* Scrollbars */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: #0a0a0a; }
+  ::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 8px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3a3a3a; }
+
+  /* Loading spinner */
+  .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: inline-block;
+  }
+  .spinner-lg {
+    width: 32px;
+    height: 32px;
+    border-width: 3px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Fade in */
+  .fade-in { animation: fade-in 0.25s ease-out; }
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Toast slide */
+  .toast-enter { animation: toast-in 0.25s ease-out; }
+  @keyframes toast-in {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* Subtle gradient on logo */
+  .logo-gradient {
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Chat bubble typing dots */
+  .typing { display: inline-flex; gap: 4px; }
+  .typing span {
+    width: 6px; height: 6px; background: #a3a3a3; border-radius: 50%;
+    animation: typing 1.2s infinite ease-in-out;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.15s; }
+  .typing span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes typing {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-4px); opacity: 1; }
+  }
+
+  /* Card hover */
+  .card-hover { transition: all 0.15s ease; }
+  .card-hover:hover { border-color: #3a3a3a; transform: translateY(-1px); }
+
+  /* Button base */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0.625rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    font-size: 0.875rem;
+    transition: all 0.15s ease;
+    cursor: pointer;
+    border: 1px solid transparent;
+    white-space: nowrap;
+  }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-primary { background: #3b82f6; color: white; }
+  .btn-primary:hover:not(:disabled) { background: #2563eb; }
+  .btn-secondary { background: #1a1a1a; color: white; border-color: #2a2a2a; }
+  .btn-secondary:hover:not(:disabled) { background: #222; border-color: #3a3a3a; }
+  .btn-ghost { background: transparent; color: #a3a3a3; }
+  .btn-ghost:hover:not(:disabled) { background: #1a1a1a; color: white; }
+  .btn-danger { background: transparent; color: #ef4444; border-color: #2a2a2a; }
+  .btn-danger:hover:not(:disabled) { background: rgba(239, 68, 68, 0.1); border-color: #ef4444; }
+
+  .input {
+    width: 100%;
+    background: #0f0f0f;
+    border: 1px solid #2a2a2a;
+    border-radius: 0.5rem;
+    padding: 0.625rem 0.875rem;
+    color: white;
+    font-size: 0.875rem;
+    transition: border-color 0.15s;
+  }
+  .input:focus { outline: none; border-color: #3b82f6; }
+  .input::placeholder { color: #555; }
+
+  /* Hidden util */
+  .hidden { display: none !important; }
+
+  /* Score ring */
+  .score-ring {
+    background: conic-gradient(var(--score-color) calc(var(--score) * 1%), #2a2a2a 0);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Code-like mono */
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* Markdown-ish line breaks */
+  .prose-content { white-space: pre-wrap; line-height: 1.6; }
+</style>
+</head>
+<body class="bg-bg min-h-screen">
+
+<!-- ==================== TOAST CONTAINER ==================== -->
+<div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm"></div>
+
+<!-- ==================== AUTH SECTION ==================== -->
+<section id="auth-section" class="hidden min-h-screen flex items-center justify-center px-4">
+  <div class="w-full max-w-md">
+    <div class="text-center mb-8">
+      <h1 class="text-4xl font-bold logo-gradient mb-2">PrepMind</h1>
+      <p class="text-muted text-sm">AI-powered interview preparation</p>
+    </div>
+
+    <div class="bg-card border border-border rounded-lg p-6 fade-in">
+      <div class="flex gap-1 mb-6 bg-bg p-1 rounded-lg">
+        <button id="tab-login" class="flex-1 py-2 px-3 rounded-md text-sm font-medium bg-card text-white">Sign in</button>
+        <button id="tab-register" class="flex-1 py-2 px-3 rounded-md text-sm font-medium text-muted">Create account</button>
+      </div>
+
+      <form id="auth-form" class="space-y-4">
+        <div>
+          <label class="block text-xs font-medium text-muted mb-1.5">Email</label>
+          <input id="auth-email" type="email" class="input" placeholder="you@company.com" required />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-muted mb-1.5">Password</label>
+          <input id="auth-password" type="password" class="input" placeholder="••••••••" minlength="6" required />
+        </div>
+        <button id="auth-submit" type="submit" class="btn btn-primary w-full">
+          <span id="auth-submit-text">Sign in</span>
+          <span id="auth-submit-spinner" class="spinner hidden"></span>
+        </button>
+      </form>
+    </div>
+
+    <p class="text-center text-muted text-xs mt-6">
+      Practice. Improve. Land the offer.
+    </p>
+  </div>
+</section>
+
+<!-- ==================== APP SHELL ==================== -->
+<div id="app-shell" class="hidden">
+  <!-- Top Bar -->
+  <header class="border-b border-border bg-bg/80 backdrop-blur sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
+      <button id="logo-btn" class="text-xl font-bold logo-gradient">PrepMind</button>
+      <div class="flex items-center gap-3">
+        <span id="user-email" class="text-sm text-muted hidden sm:inline"></span>
+        <button id="logout-btn" class="btn btn-ghost text-sm">Sign out</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-6 py-8">
+
+    <!-- ==================== DASHBOARD ==================== -->
+    <section id="dashboard-section" class="hidden fade-in">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="text-2xl font-bold">Job Descriptions</h2>
+          <p class="text-muted text-sm mt-1">Your saved JDs and interview sessions</p>
+        </div>
+        <button id="add-jd-btn" class="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          Add new JD
+        </button>
+      </div>
+
+      <div id="jd-loading" class="flex items-center justify-center py-16">
+        <span class="spinner spinner-lg"></span>
+      </div>
+
+      <div id="jd-empty" class="hidden text-center py-16 border border-dashed border-border rounded-lg">
+        <div class="text-muted text-sm mb-3">No job descriptions yet</div>
+        <button onclick="showSection('upload')" class="btn btn-secondary">Add your first JD</button>
+      </div>
+
+      <div id="jd-grid" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </section>
+
+    <!-- ==================== UPLOAD JD ==================== -->
+    <section id="upload-section" class="hidden fade-in max-w-2xl">
+      <button onclick="showSection('dashboard')" class="btn btn-ghost mb-4 -ml-2">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Back
+      </button>
+
+      <h2 class="text-2xl font-bold mb-1">Add Job Description</h2>
+      <p class="text-muted text-sm mb-6">Paste a JD and we'll prepare you to ace it.</p>
+
+      <form id="upload-form" class="bg-card border border-border rounded-lg p-6 space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-medium text-muted mb-1.5">Company name</label>
+            <input id="jd-company" type="text" class="input" placeholder="Acme Inc." required />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-muted mb-1.5">Role</label>
+            <input id="jd-role" type="text" class="input" placeholder="Senior Software Engineer" required />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-muted mb-1.5">Job description</label>
+          <textarea id="jd-text" rows="12" class="input resize-y mono text-xs" placeholder="Paste full JD here..." required></textarea>
+        </div>
+        <div class="flex justify-end gap-2">
+          <button type="button" onclick="showSection('dashboard')" class="btn btn-secondary">Cancel</button>
+          <button id="upload-submit" type="submit" class="btn btn-primary">
+            <span id="upload-submit-text">Save JD</span>
+            <span id="upload-submit-spinner" class="spinner hidden"></span>
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ==================== JD DETAIL ==================== -->
+    <section id="detail-section" class="hidden fade-in">
+      <button onclick="showSection('dashboard')" class="btn btn-ghost mb-4 -ml-2">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Back to dashboard
+      </button>
+
+      <div class="bg-card border border-border rounded-lg p-6 mb-6">
+        <div class="flex items-start justify-between gap-4 mb-4">
+          <div>
+            <div class="text-xs font-medium text-muted uppercase tracking-wider mb-1" id="detail-company"></div>
+            <h2 class="text-2xl font-bold" id="detail-role"></h2>
+            <div class="text-xs text-muted mt-1" id="detail-date"></div>
+          </div>
+          <button id="detail-delete" class="btn btn-danger text-xs">Delete</button>
+        </div>
+        <details class="text-sm text-muted">
+          <summary class="cursor-pointer hover:text-white">View full job description</summary>
+          <div id="detail-jd-text" class="mt-3 p-3 bg-bg rounded-md prose-content text-xs mono max-h-64 overflow-y-auto"></div>
+        </details>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+        <button id="btn-research" class="btn btn-secondary justify-start">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+          </svg>
+          Research company
+          <span id="research-spinner" class="spinner hidden ml-auto"></span>
+        </button>
+        <button id="btn-questions" class="btn btn-secondary justify-start">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/><circle cx="12" cy="12" r="10"/>
+          </svg>
+          Generate questions
+          <span id="questions-spinner" class="spinner hidden ml-auto"></span>
+        </button>
+        <button id="btn-interview" class="btn btn-primary justify-start">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+          Start interview
+          <span id="interview-spinner" class="spinner hidden ml-auto"></span>
+        </button>
+      </div>
+
+      <!-- Research Output -->
+      <div id="research-output" class="hidden bg-card border border-border rounded-lg p-6 mb-6">
+        <h3 class="font-semibold mb-3 flex items-center gap-2">
+          <span class="w-1.5 h-1.5 rounded-full bg-accent"></span>
+          Company research
+        </h3>
+        <div id="research-content" class="prose-content text-sm text-muted leading-relaxed"></div>
+      </div>
+
+      <!-- Questions Output -->
+      <div id="questions-output" class="hidden">
+        <h3 class="font-semibold mb-3 flex items-center gap-2">
+          <span class="w-1.5 h-1.5 rounded-full bg-accent"></span>
+          Practice questions
+          <span id="questions-count" class="text-xs text-muted font-normal"></span>
+        </h3>
+        <div id="questions-list" class="space-y-2"></div>
+      </div>
+    </section>
+
+    <!-- ==================== INTERVIEW (CHAT) ==================== -->
+    <section id="interview-section" class="hidden fade-in">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="text-xl font-bold">Live interview</h2>
+          <div id="interview-progress" class="text-xs text-muted mt-1">Connecting...</div>
+        </div>
+        <button id="end-interview-btn" class="btn btn-danger text-sm">End & get report</button>
+      </div>
+
+      <!-- Question metadata -->
+      <div id="question-meta" class="hidden bg-card border border-border rounded-lg px-4 py-2 mb-3 flex flex-wrap gap-2 text-xs">
+        <span id="meta-type" class="px-2 py-0.5 rounded bg-blue-500/15 text-blue-400 border border-blue-500/30"></span>
+        <span id="meta-difficulty" class="px-2 py-0.5 rounded bg-purple-500/15 text-purple-400 border border-purple-500/30"></span>
+        <span id="meta-topic" class="px-2 py-0.5 rounded bg-zinc-700/50 text-zinc-300 border border-zinc-600/50"></span>
+      </div>
+
+      <!-- Chat messages -->
+      <div id="chat-box" class="bg-card border border-border rounded-lg p-4 h-[60vh] overflow-y-auto space-y-4 mb-3"></div>
+
+      <!-- Input -->
+      <form id="chat-form" class="flex gap-2">
+        <input id="chat-input" type="text" class="input flex-1" placeholder="Type your answer..." autocomplete="off" disabled />
+        <button id="chat-send" type="submit" class="btn btn-primary" disabled>
+          Send
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </button>
+      </form>
+    </section>
+
+    <!-- ==================== REPORT ==================== -->
+    <section id="report-section" class="hidden fade-in">
+      <button onclick="showSection('dashboard')" class="btn btn-ghost mb-4 -ml-2">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Back to dashboard
+      </button>
+
+      <div id="report-loading" class="flex flex-col items-center justify-center py-20">
+        <span class="spinner spinner-lg"></span>
+        <p class="text-muted text-sm mt-4">Generating your report...</p>
+      </div>
+
+      <div id="report-content" class="hidden space-y-6">
+        <!-- Score header -->
+        <div class="bg-card border border-border rounded-lg p-8 flex flex-col sm:flex-row items-center gap-8">
+          <div id="score-ring" class="score-ring w-32 h-32" style="--score: 0; --score-color: #3b82f6;">
+            <div class="bg-card w-[88%] h-[88%] rounded-full flex flex-col items-center justify-center">
+              <div id="score-value" class="text-4xl font-bold">0</div>
+              <div class="text-xs text-muted">/ 100</div>
+            </div>
+          </div>
+          <div class="flex-1 text-center sm:text-left">
+            <h2 class="text-2xl font-bold mb-1">Interview report</h2>
+            <p id="score-label" class="text-muted text-sm mb-4"></p>
+            <div class="flex flex-wrap gap-4 justify-center sm:justify-start">
+              <div>
+                <div id="stat-total" class="text-xl font-semibold">0</div>
+                <div class="text-xs text-muted">Total questions</div>
+              </div>
+              <div>
+                <div id="stat-answered" class="text-xl font-semibold">0</div>
+                <div class="text-xs text-muted">Answered</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Strengths & Weaknesses -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-card border border-border rounded-lg p-6">
+            <h3 class="font-semibold mb-3 flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+              Strengths
+            </h3>
+            <div id="strengths-list" class="flex flex-wrap gap-2"></div>
+          </div>
+          <div class="bg-card border border-border rounded-lg p-6">
+            <h3 class="font-semibold mb-3 flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+              Areas to improve
+            </h3>
+            <div id="weaknesses-list" class="flex flex-wrap gap-2"></div>
+          </div>
+        </div>
+
+        <!-- Topic breakdown -->
+        <div class="bg-card border border-border rounded-lg p-6">
+          <h3 class="font-semibold mb-4">Topic breakdown</h3>
+          <div id="topic-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+        </div>
+
+        <!-- Study plan -->
+        <div class="bg-card border border-border rounded-lg p-6">
+          <h3 class="font-semibold mb-4">Study plan</h3>
+          <ol id="study-plan" class="space-y-3 text-sm"></ol>
+        </div>
+
+        <!-- Recommendations -->
+        <div class="bg-card border border-border rounded-lg p-6">
+          <h3 class="font-semibold mb-3">Recommendations</h3>
+          <p id="recommendations" class="prose-content text-sm text-muted leading-relaxed"></p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+/* ==========================================================================
+   PrepMind Frontend
+   ========================================================================== */
+
+// Same-origin: works whether served from localhost, 127.0.0.1, or another host/port.
+// Falls back to localhost:8000 if the page is opened via file:// for dev.
+const API = window.location.protocol === "file:" ? "http://localhost:8000" : "";
+const WS_API = window.location.protocol === "file:"
+  ? "ws://localhost:8000"
+  : `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}`;
+
+const state = {
+  token: localStorage.getItem("pm_token") || null,
+  user: null,
+  jds: [],
+  currentJd: null,
+  currentSessionId: null,
+  ws: null,
+  questionCount: 0,
+  totalQuestions: 0,
+  answeredCount: 0,
+  authMode: "login", // "login" | "register"
+};
+
+/* -------------------------- Toast notifications -------------------------- */
+function toast(message, type = "info") {
+  const colors = {
+    info: "bg-card border-border text-white",
+    success: "bg-green-500/10 border-green-500/30 text-green-400",
+    error: "bg-red-500/10 border-red-500/30 text-red-400",
+  };
+  const icons = {
+    info: "i",
+    success: "✓",
+    error: "!",
+  };
+  const el = document.createElement("div");
+  el.className = `toast-enter border ${colors[type]} rounded-lg px-4 py-3 text-sm flex items-start gap-3 shadow-lg`;
+  el.innerHTML = `
+    <span class="font-bold mt-0.5">${icons[type]}</span>
+    <span class="flex-1">${escapeHtml(message)}</span>
+  `;
+  document.getElementById("toast-container").appendChild(el);
+  setTimeout(() => {
+    el.style.transition = "all 0.3s";
+    el.style.opacity = "0";
+    el.style.transform = "translateX(20px)";
+    setTimeout(() => el.remove(), 300);
+  }, 4000);
+}
+
+function escapeHtml(s) {
+  if (s == null) return "";
+  return String(s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
+
+/* -------------------------- API helper -------------------------- */
+async function api(path, opts = {}) {
+  const headers = { "Content-Type": "application/json", ...(opts.headers || {}) };
+  if (state.token) headers["Authorization"] = `Bearer ${state.token}`;
+  const res = await fetch(`${API}${path}`, { ...opts, headers });
+  if (!res.ok) {
+    let detail = `${res.status} ${res.statusText}`;
+    try {
+      const data = await res.json();
+      detail = data.detail || JSON.stringify(data);
+    } catch (_) {}
+    if (res.status === 401) {
+      logout();
+      throw new Error("Session expired. Please sign in again.");
+    }
+    throw new Error(detail);
+  }
+  if (res.status === 204) return null;
+  return res.json();
+}
+
+/* -------------------------- Section routing -------------------------- */
+const SECTIONS = ["dashboard", "upload", "detail", "interview", "report"];
+function showSection(name) {
+  // Always close any active WS when leaving interview
+  if (name !== "interview" && state.ws) {
+    try { state.ws.close(); } catch (_) {}
+    state.ws = null;
+  }
+  SECTIONS.forEach(s => {
+    document.getElementById(`${s}-section`).classList.toggle("hidden", s !== name);
+  });
+  if (name === "dashboard") loadDashboard();
+}
+
+/* -------------------------- Auth -------------------------- */
+const authForm = document.getElementById("auth-form");
+const tabLogin = document.getElementById("tab-login");
+const tabRegister = document.getElementById("tab-register");
+
+function setAuthMode(mode) {
+  state.authMode = mode;
+  const isLogin = mode === "login";
+  tabLogin.classList.toggle("bg-card", isLogin);
+  tabLogin.classList.toggle("text-white", isLogin);
+  tabLogin.classList.toggle("text-muted", !isLogin);
+  tabRegister.classList.toggle("bg-card", !isLogin);
+  tabRegister.classList.toggle("text-white", !isLogin);
+  tabRegister.classList.toggle("text-muted", isLogin);
+  document.getElementById("auth-submit-text").textContent = isLogin ? "Sign in" : "Create account";
+}
+tabLogin.onclick = () => setAuthMode("login");
+tabRegister.onclick = () => setAuthMode("register");
+
+authForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = document.getElementById("auth-email").value.trim();
+  const password = document.getElementById("auth-password").value;
+  const submitBtn = document.getElementById("auth-submit");
+  const spinner = document.getElementById("auth-submit-spinner");
+  submitBtn.disabled = true;
+  spinner.classList.remove("hidden");
+  try {
+    if (state.authMode === "register") {
+      await api("/auth/register", { method: "POST", body: JSON.stringify({ email, password }) });
+      toast("Account created — signing you in...", "success");
+    }
+    const data = await api("/auth/login", { method: "POST", body: JSON.stringify({ email, password }) });
+    state.token = data.access_token;
+    localStorage.setItem("pm_token", state.token);
+    await bootstrapApp();
+  } catch (err) {
+    toast(err.message, "error");
+  } finally {
+    submitBtn.disabled = false;
+    spinner.classList.add("hidden");
+  }
+});
+
+function logout() {
+  localStorage.removeItem("pm_token");
+  state.token = null;
+  state.user = null;
+  if (state.ws) { try { state.ws.close(); } catch(_){} state.ws = null; }
+  document.getElementById("app-shell").classList.add("hidden");
+  document.getElementById("auth-section").classList.remove("hidden");
+}
+
+document.getElementById("logout-btn").onclick = logout;
+document.getElementById("logo-btn").onclick = () => showSection("dashboard");
+document.getElementById("add-jd-btn").onclick = () => showSection("upload");
+
+/* -------------------------- Bootstrap -------------------------- */
+async function bootstrapApp() {
+  try {
+    const me = await api("/auth/me");
+    state.user = me;
+    document.getElementById("user-email").textContent = me.email || "";
+    document.getElementById("auth-section").classList.add("hidden");
+    document.getElementById("app-shell").classList.remove("hidden");
+    showSection("dashboard");
+  } catch (err) {
+    logout();
+  }
+}
+
+/* -------------------------- Dashboard -------------------------- */
+async function loadDashboard() {
+  const loading = document.getElementById("jd-loading");
+  const grid = document.getElementById("jd-grid");
+  const empty = document.getElementById("jd-empty");
+  loading.classList.remove("hidden");
+  grid.classList.add("hidden");
+  empty.classList.add("hidden");
+
+  try {
+    const list = await api("/jd/list");
+    state.jds = Array.isArray(list) ? list : (list.job_descriptions || list.jds || []);
+    if (state.jds.length === 0) {
+      empty.classList.remove("hidden");
+    } else {
+      grid.innerHTML = state.jds.map(renderJdCard).join("");
+      grid.classList.remove("hidden");
+      grid.querySelectorAll("[data-jd-id]").forEach(card => {
+        card.addEventListener("click", (e) => {
+          if (e.target.closest("[data-delete-jd-id]")) return;
+          openJdDetail(card.dataset.jdId);
+        });
+      });
+      grid.querySelectorAll("[data-delete-jd-id]").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const card = btn.closest("[data-jd-id]");
+          deleteJdFromCard(btn.dataset.deleteJdId, card);
+        });
+      });
+    }
+  } catch (err) {
+    toast(err.message, "error");
+  } finally {
+    loading.classList.add("hidden");
+  }
+}
+
+function renderJdCard(jd) {
+  const id = jd.id || jd.jd_id;
+  const company = jd.company_name || "Untitled";
+  const role = jd.role || "Role";
+  const created = jd.created_at ? new Date(jd.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "";
+  return `
+    <div data-jd-id="${escapeHtml(id)}" class="group relative card-hover bg-card border border-border rounded-lg p-5 cursor-pointer">
+      <button
+        type="button"
+        data-delete-jd-id="${escapeHtml(id)}"
+        title="Delete JD"
+        aria-label="Delete JD"
+        class="absolute top-2 right-2 p-1.5 rounded-md text-red-400 opacity-0 group-hover:opacity-100 hover:bg-red-500/10 transition-opacity"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/>
+        </svg>
+      </button>
+      <div class="text-xs font-medium text-muted uppercase tracking-wider mb-1.5 pr-7">${escapeHtml(company)}</div>
+      <div class="text-base font-semibold mb-3 line-clamp-2">${escapeHtml(role)}</div>
+      <div class="flex items-center justify-between text-xs text-muted">
+        <span>${escapeHtml(created)}</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+      </div>
+    </div>
+  `;
+}
+
+async function deleteJdFromCard(jdId, cardEl) {
+  if (!confirm("Are you sure you want to delete this JD?")) return;
+  try {
+    await api(`/jd/${jdId}`, { method: "DELETE" });
+    cardEl.remove();
+    state.jds = state.jds.filter(j => String(j.id || j.jd_id) !== String(jdId));
+    toast("JD deleted", "success");
+    if (state.jds.length === 0) {
+      document.getElementById("jd-grid").classList.add("hidden");
+      document.getElementById("jd-empty").classList.remove("hidden");
+    }
+  } catch (err) {
+    toast(err.message, "error");
+  }
+}
+
+/* -------------------------- Upload JD -------------------------- */
+document.getElementById("upload-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const company_name = document.getElementById("jd-company").value.trim();
+  const role = document.getElementById("jd-role").value.trim();
+  const jd_text = document.getElementById("jd-text").value.trim();
+  const btn = document.getElementById("upload-submit");
+  const spinner = document.getElementById("upload-submit-spinner");
+  btn.disabled = true;
+  spinner.classList.remove("hidden");
+  try {
+    await api("/jd/upload", { method: "POST", body: JSON.stringify({ company_name, role, jd_text }) });
+    toast("Job description saved", "success");
+    document.getElementById("upload-form").reset();
+    showSection("dashboard");
+  } catch (err) {
+    toast(err.message, "error");
+  } finally {
+    btn.disabled = false;
+    spinner.classList.add("hidden");
+  }
+});
+
+/* -------------------------- JD Detail -------------------------- */
+async function openJdDetail(jdId) {
+  const jd = state.jds.find(j => String(j.id || j.jd_id) === String(jdId));
+  if (!jd) {
+    toast("JD not found", "error");
+    return;
+  }
+  state.currentJd = jd;
+  document.getElementById("detail-company").textContent = jd.company_name || "";
+  document.getElementById("detail-role").textContent = jd.role || "";
+  document.getElementById("detail-date").textContent = jd.created_at
+    ? "Saved " + new Date(jd.created_at).toLocaleDateString()
+    : "";
+  document.getElementById("detail-jd-text").textContent = jd.jd_text || "";
+
+  // Reset outputs
+  document.getElementById("research-output").classList.add("hidden");
+  document.getElementById("questions-output").classList.add("hidden");
+  document.getElementById("questions-list").innerHTML = "";
+
+  showSection("detail");
+}
+
+document.getElementById("detail-delete").onclick = async () => {
+  if (!state.currentJd) return;
+  if (!confirm("Delete this JD? This cannot be undone.")) return;
+  const id = state.currentJd.id || state.currentJd.jd_id;
+  try {
+    await api(`/jd/${id}`, { method: "DELETE" });
+    toast("JD deleted", "success");
+    showSection("dashboard");
+  } catch (err) {
+    toast(err.message, "error");
+  }
+};
+
+document.getElementById("btn-research").onclick = async () => {
+  if (!state.currentJd) return;
+  const id = state.currentJd.id || state.currentJd.jd_id;
+  const spinner = document.getElementById("research-spinner");
+  spinner.classList.remove("hidden");
+  try {
+    const data = await api("/research/company", { method: "POST", body: JSON.stringify({ jd_id: id }) });
+    document.getElementById("research-content").textContent = data.research || JSON.stringify(data, null, 2);
+    document.getElementById("research-output").classList.remove("hidden");
+    document.getElementById("research-output").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  } catch (err) {
+    toast(err.message, "error");
+  } finally {
+    spinner.classList.add("hidden");
+  }
+};
+
+document.getElementById("btn-questions").onclick = async () => {
+  if (!state.currentJd) return;
+  const id = state.currentJd.id || state.currentJd.jd_id;
+  const spinner = document.getElementById("questions-spinner");
+  spinner.classList.remove("hidden");
+  try {
+    const data = await api("/questions/generate", { method: "POST", body: JSON.stringify({ jd_id: id }) });
+    const questions = data.questions || data || [];
+    renderQuestions(questions);
+  } catch (err) {
+    toast(err.message, "error");
+  } finally {
+    spinner.classList.add("hidden");
+  }
+};
+
+function renderQuestions(questions) {
+  const list = document.getElementById("questions-list");
+  document.getElementById("questions-count").textContent = `(${questions.length})`;
+  list.innerHTML = questions.map((q, i) => {
+    const text = q.question || q.text || q.prompt || "";
+    const type = q.type || q.question_type || "";
+    const difficulty = q.difficulty || "";
+    const topic = q.topic || q.category || "";
+    const hint = q.hint || "";
+    const ideal = q.ideal_answer || q.answer || "";
+    return `
+      <details class="bg-card border border-border rounded-lg group">
+        <summary class="cursor-pointer px-5 py-4 list-none flex items-start gap-3 hover:bg-white/5 rounded-lg">
+          <span class="text-muted text-sm mono mt-0.5">${String(i + 1).padStart(2, "0")}</span>
+          <div class="flex-1">
+            <div class="text-sm font-medium mb-1.5">${escapeHtml(text)}</div>
+            <div class="flex flex-wrap gap-1.5">
+              ${type ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400 border border-blue-500/30">${escapeHtml(type)}</span>` : ""}
+              ${difficulty ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-400 border border-purple-500/30">${escapeHtml(difficulty)}</span>` : ""}
+              ${topic ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-zinc-700/50 text-zinc-300 border border-zinc-600/50">${escapeHtml(topic)}</span>` : ""}
+            </div>
+          </div>
+          <svg class="text-muted mt-1 transition-transform group-open:rotate-180" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="px-5 pb-4 pt-1 border-t border-border space-y-3 text-sm">
+          ${hint ? `<div><div class="text-xs font-semibold text-muted uppercase tracking-wider mb-1">Hint</div><div class="text-muted">${escapeHtml(hint)}</div></div>` : ""}
+          ${ideal ? `<div><div class="text-xs font-semibold text-muted uppercase tracking-wider mb-1">Ideal answer</div><div class="text-muted prose-content">${escapeHtml(ideal)}</div></div>` : ""}
+        </div>
+      </details>
+    `;
+  }).join("");
+  document.getElementById("questions-output").classList.remove("hidden");
+  document.getElementById("questions-output").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+/* -------------------------- Interview (WebSocket) -------------------------- */
+document.getElementById("btn-interview").onclick = async () => {
+  if (!state.currentJd) return;
+  const id = state.currentJd.id || state.currentJd.jd_id;
+  const spinner = document.getElementById("interview-spinner");
+  spinner.classList.remove("hidden");
+  try {
+    const data = await api("/interview/start", { method: "POST", body: JSON.stringify({ jd_id: id }) });
+    state.currentSessionId = data.session_id;
+    state.questionCount = 0;
+    state.totalQuestions = data.total_questions || 0;
+    state.answeredCount = 0;
+    showSection("interview");
+    initChat();
+    connectWebSocket(state.currentSessionId);
+  } catch (err) {
+    toast(err.message, "error");
+  } finally {
+    spinner.classList.add("hidden");
+  }
+};
+
+function initChat() {
+  document.getElementById("chat-box").innerHTML = "";
+  document.getElementById("question-meta").classList.add("hidden");
+  document.getElementById("interview-progress").textContent = "Connecting...";
+  document.getElementById("chat-input").value = "";
+  document.getElementById("chat-input").disabled = true;
+  document.getElementById("chat-send").disabled = true;
+}
+
+function connectWebSocket(sessionId) {
+  const url = `${WS_API}/interview/chat/${sessionId}?token=${encodeURIComponent(state.token)}`;
+  const ws = new WebSocket(url);
+  state.ws = ws;
+
+  ws.onopen = () => {
+    document.getElementById("interview-progress").textContent = "Connected • Waiting for first question...";
+    document.getElementById("chat-input").disabled = false;
+    document.getElementById("chat-send").disabled = false;
+    addTypingIndicator();
+  };
+
+  ws.onmessage = (e) => {
+    removeTypingIndicator();
+    let msg;
+    try { msg = JSON.parse(e.data); }
+    catch (_) { msg = { type: "message", content: e.data }; }
+    handleServerMessage(msg);
+  };
+
+  ws.onerror = () => {
+    toast("Connection error", "error");
+    document.getElementById("interview-progress").textContent = "Connection error";
+  };
+
+  ws.onclose = () => {
+    document.getElementById("chat-input").disabled = true;
+    document.getElementById("chat-send").disabled = true;
+    if (document.getElementById("interview-section").classList.contains("hidden") === false) {
+      document.getElementById("interview-progress").textContent = "Disconnected";
+    }
+  };
+}
+
+function handleServerMessage(msg) {
+  // Surface backend errors
+  if (msg.error) {
+    toast(msg.error, "error");
+    addBubble("server", msg.error, true);
+    return;
+  }
+
+  const type = msg.type || "message";
+
+  // New interview question — has `question` field + number/total/difficulty/topic
+  const isNewQuestion = type === "question" && msg.question;
+
+  if (isNewQuestion) {
+    if (typeof msg.number !== "undefined") state.questionCount = msg.number;
+    if (typeof msg.total !== "undefined") state.totalQuestions = msg.total;
+    updateProgress();
+
+    const meta = document.getElementById("question-meta");
+    const t = document.getElementById("meta-type");
+    const d = document.getElementById("meta-difficulty");
+    const tp = document.getElementById("meta-topic");
+    t.classList.add("hidden"); // backend doesn't send question_type on the live channel
+    d.textContent = msg.difficulty || "";
+    d.classList.toggle("hidden", !msg.difficulty);
+    tp.textContent = msg.topic || "";
+    tp.classList.toggle("hidden", !msg.topic);
+    meta.classList.toggle("hidden", !msg.difficulty && !msg.topic);
+
+    addBubble("server", msg.question);
+    return;
+  }
+
+  // Answer evaluation — feedback + score + encouragement
+  if (type === "answer") {
+    const parts = [];
+    if (typeof msg.score !== "undefined") parts.push(`Score: ${msg.score}/10`);
+    if (msg.feedback) parts.push(msg.feedback);
+    if (msg.encouragement) parts.push(msg.encouragement);
+    if (parts.length) addBubble("server", parts.join("\n\n"));
+    state.answeredCount++;
+    return;
+  }
+
+  // Hint / clarifying reply (backend sends type:"question" with `response` and next:false)
+  if (type === "question" && msg.response) {
+    const parts = [msg.response];
+    if (msg.encouragement) parts.push(msg.encouragement);
+    addBubble("server", parts.join("\n\n"));
+    return;
+  }
+
+  // Full reveal of the ideal answer
+  if (type === "reveal") {
+    const parts = [];
+    if (msg.answer) parts.push(msg.answer);
+    if (msg.learning) parts.push(`Key concepts: ${msg.learning}`);
+    if (parts.length) addBubble("server", parts.join("\n\n"));
+    return;
+  }
+
+  // Resume notice
+  if (type === "resume") {
+    if (msg.message) addBubble("server", msg.message, true);
+    return;
+  }
+
+  // Completion
+  if (type === "complete" || type === "finished" || type === "end") {
+    if (msg.message) addBubble("server", msg.message);
+    if (typeof msg.score !== "undefined") {
+      addBubble("server", `Average score: ${msg.score}/10`, true);
+    }
+    addBubble("server", "Interview complete. Click 'End & get report' to view your results.", true);
+    document.getElementById("chat-input").disabled = true;
+    document.getElementById("chat-send").disabled = true;
+    return;
+  }
+
+  // Fallback for plain text or unknown shapes
+  const content = msg.content || msg.message || msg.text || "";
+  if (content) addBubble("server", content);
+}
+
+function updateProgress() {
+  const el = document.getElementById("interview-progress");
+  if (state.totalQuestions > 0) {
+    el.textContent = `Question ${state.questionCount} of ${state.totalQuestions}`;
+  } else if (state.questionCount > 0) {
+    el.textContent = `Question ${state.questionCount}`;
+  }
+}
+
+function addBubble(role, text, subtle = false) {
+  const box = document.getElementById("chat-box");
+  const isUser = role === "user";
+  const wrapper = document.createElement("div");
+  wrapper.className = `flex ${isUser ? "justify-end" : "justify-start"} fade-in`;
+  const bubbleClass = isUser
+    ? "bg-blue-600 text-white"
+    : (subtle ? "bg-zinc-800/60 text-muted italic" : "bg-zinc-800 text-white");
+  wrapper.innerHTML = `
+    <div class="max-w-[75%] ${bubbleClass} rounded-2xl px-4 py-2.5 text-sm leading-relaxed prose-content">
+      ${escapeHtml(text)}
+    </div>
+  `;
+  box.appendChild(wrapper);
+  box.scrollTop = box.scrollHeight;
+}
+
+function addTypingIndicator() {
+  removeTypingIndicator();
+  const box = document.getElementById("chat-box");
+  const el = document.createElement("div");
+  el.id = "typing-indicator";
+  el.className = "flex justify-start fade-in";
+  el.innerHTML = `
+    <div class="bg-zinc-800 rounded-2xl px-4 py-3">
+      <div class="typing"><span></span><span></span><span></span></div>
+    </div>
+  `;
+  box.appendChild(el);
+  box.scrollTop = box.scrollHeight;
+}
+function removeTypingIndicator() {
+  const el = document.getElementById("typing-indicator");
+  if (el) el.remove();
+}
+
+document.getElementById("chat-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const input = document.getElementById("chat-input");
+  const text = input.value.trim();
+  if (!text || !state.ws || state.ws.readyState !== WebSocket.OPEN) return;
+  addBubble("user", text);
+  try {
+    state.ws.send(text);
+  } catch (err) {
+    toast("Failed to send message", "error");
+    return;
+  }
+  input.value = "";
+  addTypingIndicator();
+});
+
+document.getElementById("end-interview-btn").onclick = async () => {
+  if (!state.currentSessionId) return;
+  if (!confirm("End the interview and generate your report?")) return;
+  if (state.ws) { try { state.ws.close(); } catch(_){} state.ws = null; }
+  showSection("report");
+  await loadReport(state.currentSessionId);
+};
+
+/* -------------------------- Report -------------------------- */
+async function loadReport(sessionId) {
+  document.getElementById("report-loading").classList.remove("hidden");
+  document.getElementById("report-content").classList.add("hidden");
+
+  try {
+    const data = await api(`/evaluation/report/${sessionId}`, { method: "POST" });
+    renderReport(data);
+  } catch (err) {
+    toast(err.message, "error");
+    document.getElementById("report-loading").innerHTML = `<p class="text-red-400 text-sm">${escapeHtml(err.message)}</p>`;
+  }
+}
+
+function renderReport(data) {
+  document.getElementById("report-loading").classList.add("hidden");
+  document.getElementById("report-content").classList.remove("hidden");
+
+  const score = Number(data.overall_score ?? data.score ?? 0);
+  const total = data.total_questions ?? data.total ?? 0;
+  const answered = data.answered_questions ?? data.answered ?? state.answeredCount;
+  const strengths = data.strengths || [];
+  const weaknesses = data.weaknesses || [];
+  const topics = data.topic_breakdown || data.topics || {};
+  const studyPlan = data.study_plan || [];
+  const recommendations = data.recommendations || data.summary || "";
+
+  // Score
+  const scoreColor = score >= 75 ? "#10b981" : score >= 50 ? "#eab308" : "#ef4444";
+  const scoreLabel = score >= 75 ? "Strong performance" : score >= 50 ? "Solid foundation, room to grow" : "Keep practicing — you've got this";
+  const ring = document.getElementById("score-ring");
+  ring.style.setProperty("--score", score);
+  ring.style.setProperty("--score-color", scoreColor);
+  document.getElementById("score-value").textContent = Math.round(score);
+  document.getElementById("score-value").style.color = scoreColor;
+  document.getElementById("score-label").textContent = scoreLabel;
+  document.getElementById("stat-total").textContent = total;
+  document.getElementById("stat-answered").textContent = answered;
+
+  // Strengths
+  document.getElementById("strengths-list").innerHTML = strengths.length
+    ? strengths.map(s => `<span class="px-3 py-1 rounded-full bg-green-500/10 text-green-400 border border-green-500/30 text-xs">${escapeHtml(s)}</span>`).join("")
+    : `<span class="text-muted text-xs">No strengths identified yet.</span>`;
+
+  // Weaknesses
+  document.getElementById("weaknesses-list").innerHTML = weaknesses.length
+    ? weaknesses.map(w => `<span class="px-3 py-1 rounded-full bg-red-500/10 text-red-400 border border-red-500/30 text-xs">${escapeHtml(w)}</span>`).join("")
+    : `<span class="text-muted text-xs">No weaknesses identified.</span>`;
+
+  // Topics
+  const topicEntries = Array.isArray(topics)
+    ? topics.map(t => [t.topic || t.name, t.score])
+    : Object.entries(topics);
+  document.getElementById("topic-grid").innerHTML = topicEntries.length
+    ? topicEntries.map(([name, val]) => {
+        const s = typeof val === "object" ? (val.score ?? 0) : Number(val ?? 0);
+        const color = s >= 75 ? "text-green-400" : s >= 50 ? "text-yellow-400" : "text-red-400";
+        const bar = s >= 75 ? "bg-green-500" : s >= 50 ? "bg-yellow-500" : "bg-red-500";
+        return `
+          <div class="bg-bg border border-border rounded-lg p-4">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-sm font-medium">${escapeHtml(name)}</span>
+              <span class="text-sm font-semibold ${color}">${Math.round(s)}</span>
+            </div>
+            <div class="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+              <div class="${bar} h-full transition-all" style="width: ${Math.min(100, Math.max(0, s))}%"></div>
+            </div>
+          </div>
+        `;
+      }).join("")
+    : `<div class="text-muted text-xs col-span-full">No topic data available.</div>`;
+
+  // Study plan
+  document.getElementById("study-plan").innerHTML = studyPlan.length
+    ? studyPlan.map((item, i) => {
+        const text = typeof item === "string" ? item : (item.task || item.action || JSON.stringify(item));
+        return `
+          <li class="flex gap-3">
+            <span class="flex-shrink-0 w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 text-xs font-semibold flex items-center justify-center">${i + 1}</span>
+            <span class="text-muted leading-relaxed pt-0.5">${escapeHtml(text)}</span>
+          </li>
+        `;
+      }).join("")
+    : `<li class="text-muted text-xs">No study plan generated.</li>`;
+
+  // Recommendations
+  document.getElementById("recommendations").textContent = recommendations || "No additional recommendations.";
+}
+
+/* -------------------------- Init -------------------------- */
+(async function init() {
+  setAuthMode("login");
+  if (state.token) {
+    await bootstrapApp();
+  } else {
+    document.getElementById("auth-section").classList.remove("hidden");
+  }
+})();
+</script>
+
+</body>
+</html>

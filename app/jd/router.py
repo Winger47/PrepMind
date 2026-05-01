@@ -4,7 +4,15 @@ from pydantic import BaseModel
 
 from app.database import get_db
 from app.auth.utils import get_current_user
-from app.models import JobDescription, User
+from app.models import (
+    JobDescription,
+    User,
+    CompanyResearch,
+    InterviewQuestion,
+    InterviewSession,
+    InterviewAnswer,
+    InterviewReport,
+)
 
 
 class JDUploadRequest(BaseModel):
@@ -100,6 +108,18 @@ def delete_jd(
     )
     if not jd:
         raise HTTPException(status_code=404, detail="Job description not found")
+
+    # Clean up child rows that reference this JD (no ON DELETE CASCADE in schema).
+    session_ids = [
+        s.id for s in db.query(InterviewSession.id).filter(InterviewSession.jd_id == jd_id).all()
+    ]
+    if session_ids:
+        db.query(InterviewAnswer).filter(InterviewAnswer.session_id.in_(session_ids)).delete(synchronize_session=False)
+        db.query(InterviewReport).filter(InterviewReport.session_id.in_(session_ids)).delete(synchronize_session=False)
+        db.query(InterviewSession).filter(InterviewSession.id.in_(session_ids)).delete(synchronize_session=False)
+    db.query(InterviewQuestion).filter(InterviewQuestion.jd_id == jd_id).delete(synchronize_session=False)
+    db.query(CompanyResearch).filter(CompanyResearch.jd_id == jd_id).delete(synchronize_session=False)
+
     db.delete(jd)
     db.commit()
     return {"message": "Job description deleted successfully"}

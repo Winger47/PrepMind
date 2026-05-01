@@ -4,11 +4,12 @@ from app.models import User
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
+from typing import Optional
 
 class RegisterRequest(BaseModel):
     email: str
     password: str
-    name: str
+    name: Optional[str] = None
 class LoginRequest(BaseModel):
     email: str
     password: str
