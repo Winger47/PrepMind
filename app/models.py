@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Text
+from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Text,Float
 from sqlalchemy.sql import func
 from app.database import Base
 
@@ -76,3 +76,21 @@ class InterviewSession(Base):
     status = Column(String, default="active")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     completed_at = Column(DateTime(timezone=True), nullable=True)
+
+class InterviewReport(Base):
+    __tablename__="interview_reports"
+    id=Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    jd_id = Column(Integer, ForeignKey("job_descriptions.id"), nullable=False)
+    session_id = Column(Integer, ForeignKey("interview_sessions.id"), nullable=False)
+    overall_score = Column(Float)
+    strengths = Column(Text)
+    weaknesses = Column(Text)
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    recommendations = Column(Text)
+    topics_breakdown = Column(Text)
+    total_questions = Column(Integer)
+    answered = Column(Integer)
+    study_plan = Column(Text)
+    # add these columns:
